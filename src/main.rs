@@ -1,4 +1,5 @@
 use actix_web::{get, App, Error, HttpResponse, HttpServer, middleware, web};
+use bgp_models::prelude::Asn;
 use bgpkit_parser::{BgpElem, BgpkitParser};
 use serde::{Deserialize};
 use serde_json::json;
@@ -6,6 +7,9 @@ use serde_json::json;
 #[derive(Deserialize, Debug)]
 pub struct Info {
     file: String,
+    msg_type: Option<String>,
+    asn: Option<Asn>,
+    prefix: Option<String>,
     max: Option<usize>,
 }
 
@@ -26,7 +30,41 @@ async fn parse_item(
         }
     };
     let max = info.max.unwrap_or(100);
-    let elems = parser.into_elem_iter().take(max).collect::<Vec<BgpElem>>();
+    let elems = parser.into_elem_iter()
+        .filter(|elem| {
+            if let Some(p) = &info.prefix {
+                if elem.prefix.to_string() != *p{
+                    return false
+                }
+            }
+            if let Some(asn) = &info.asn {
+                if let Some(origins)  = &elem.origin_asns {
+                    if !origins.contains(asn) {
+                        return false
+                    }
+                } else {
+                    return false
+                }
+            }
+            if let Some(msg_type) = &info.msg_type {
+                match msg_type.to_lowercase().as_str() {
+                    "announcement" | "announce" | "a" => {
+                        if let bgp_models::prelude::ElemType::WITHDRAW = elem.elem_type {
+                            return false
+                        }
+                    }
+                    "withdrawal" | "withdraw" | "w" => {
+                        if let bgp_models::prelude::ElemType::ANNOUNCE = elem.elem_type {
+                            return false
+                        }
+                    }
+                    _ => return true
+                }
+            }
+            true
+        })
+        .take(max).collect::<Vec<BgpElem>>();
+
 
     Ok(
         HttpResponse::Ok().json(json!({
