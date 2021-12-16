@@ -1,5 +1,5 @@
 [package]
-name = "bgpkit-parser-ui-demo"
+name = "bgpkit-parser-api-demo"
 version = "0.1.0"
 edition = "2021"
 
@@ -12,5 +12,4 @@ serde = {version = "1", features = ["derive"]}
 serde_json = {version = "1"}
 actix-web = "3"
 
-bgpkit-parser = "0.6.0-rc.3"
-bgp-models = "0.4.0"
+bgpkit-parser = "0.7.0-alpha.1"

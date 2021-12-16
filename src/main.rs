@@ -1,6 +1,6 @@
 use actix_web::{get, App, Error, HttpResponse, HttpServer, middleware, web};
-use bgp_models::prelude::Asn;
 use bgpkit_parser::{BgpElem, BgpkitParser};
+use bgpkit_parser::parser::ElemType;
 use serde::{Deserialize};
 use serde_json::json;
 
@@ -8,7 +8,7 @@ use serde_json::json;
 pub struct Info {
     file: String,
     msg_type: Option<String>,
-    asn: Option<Asn>,
+    asn: Option<u32>,
     prefix: Option<String>,
     max: Option<usize>,
 }
@@ -49,12 +49,12 @@ async fn parse_item(
             if let Some(msg_type) = &info.msg_type {
                 match msg_type.to_lowercase().as_str() {
                     "announcement" | "announce" | "a" => {
-                        if let bgp_models::prelude::ElemType::WITHDRAW = elem.elem_type {
+                        if let ElemType::WITHDRAW = elem.elem_type {
                             return false
                         }
                     }
                     "withdrawal" | "withdraw" | "w" => {
-                        if let bgp_models::prelude::ElemType::ANNOUNCE = elem.elem_type {
+                        if let ElemType::ANNOUNCE = elem.elem_type {
                             return false
                         }
                     }

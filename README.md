@@ -15,7 +15,7 @@ Parameters:
 
 Parse an update file and filter by ASN 15169:
 ``` 
-➜  ~ curl --silent http://localhost:8080/parse\?file\=http://archive.routeviews.org/bgpdata/2021.10/UPDATES/updates.20211001.0000.bz2\&asn\=15169 |jq 
+➜  ~ curl --silent http://localhost:8080/parse\?file\=https://spaces.bgpkit.org/parser/update-example.gz\&asn\=15169 |jq 
 {
   "data": [
     {
