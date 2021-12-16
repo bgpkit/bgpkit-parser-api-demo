@@ -19,7 +19,7 @@ Parameters:
 
 Parse an update file and filter by ASN 15169:
 ``` 
-➜  ~ curl --silent http://localhost:8080/parse\?file\=https://spaces.bgpkit.org/parser/update-example.gz\&asn\=15169 |jq 
+➜  ~ curl --silent "http://localhost:8080/parse?file=https://spaces.bgpkit.org/parser/update-example.gz" |jq 
 {
   "data": [
     {
