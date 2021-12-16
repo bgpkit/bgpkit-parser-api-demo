@@ -11,6 +11,10 @@ Parameters:
 - `prefix`: optional. filter by origin prefix.
 - `msg_type`: optional. filter by message type, values can be "a" or "w".
 
+## Run from Docker
+
+`docker run --rm -p 8080:8080 bgpkit/bgpkit-parser-api-demo:latest`
+
 ## Example
 
 Parse an update file and filter by ASN 15169:
