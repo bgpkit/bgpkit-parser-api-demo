@@ -12,4 +12,4 @@ serde = {version = "1", features = ["derive"]}
 serde_json = {version = "1"}
 actix-web = "3"
 
-bgpkit-parser = "0.7.0-alpha.1"
+bgpkit-parser = "0.7"

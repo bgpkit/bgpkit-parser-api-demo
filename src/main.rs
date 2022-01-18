@@ -1,6 +1,5 @@
 use actix_web::{get, App, Error, HttpResponse, HttpServer, middleware, web};
 use bgpkit_parser::{BgpElem, BgpkitParser};
-use bgpkit_parser::parser::ElemType;
 use serde::{Deserialize};
 use serde_json::json;
 
@@ -18,7 +17,7 @@ pub struct Info {
 async fn parse_item(
     info: web::Query<Info>
 ) -> Result<HttpResponse, Error> {
-    let parser = match BgpkitParser::new(info.file.as_str()){
+    let mut parser = match BgpkitParser::new(info.file.as_str()){
         Ok(p) => {p}
         Err(err) => {
             return Ok(
@@ -29,40 +28,31 @@ async fn parse_item(
             )
         }
     };
+
+
+    if let Some(p) = &info.prefix {
+        parser = parser.add_filter("prefix", p.as_str()).unwrap();
+    }
+
+    if let Some(asn) = &info.asn {
+        parser = parser.add_filter("origin_asn", asn.to_string().as_str()).unwrap();
+    }
+
+    if let Some(msg_type) = &info.msg_type {
+        match msg_type.to_lowercase().as_str() {
+            "announcement" | "announce" | "a" => {
+                parser=parser.add_filter("type", "a").unwrap();
+            }
+            "withdrawal" | "withdraw" | "w" => {
+                parser=parser.add_filter("type", "w").unwrap();
+            }
+            _ => {}
+        }
+    }
+
+
     let max = info.max.unwrap_or(100);
     let elems = parser.into_elem_iter()
-        .filter(|elem| {
-            if let Some(p) = &info.prefix {
-                if elem.prefix.to_string() != *p{
-                    return false
-                }
-            }
-            if let Some(asn) = &info.asn {
-                if let Some(origins)  = &elem.origin_asns {
-                    if !origins.contains(asn) {
-                        return false
-                    }
-                } else {
-                    return false
-                }
-            }
-            if let Some(msg_type) = &info.msg_type {
-                match msg_type.to_lowercase().as_str() {
-                    "announcement" | "announce" | "a" => {
-                        if let ElemType::WITHDRAW = elem.elem_type {
-                            return false
-                        }
-                    }
-                    "withdrawal" | "withdraw" | "w" => {
-                        if let ElemType::ANNOUNCE = elem.elem_type {
-                            return false
-                        }
-                    }
-                    _ => return true
-                }
-            }
-            true
-        })
         .take(max).collect::<Vec<BgpElem>>();
 
 
